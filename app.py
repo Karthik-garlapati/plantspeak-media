@@ -1,3 +1,53 @@
+import sqlite3
+import os
+
+DB_PATH = "user_data.db"
+
+def init_db():
+    if not os.path.exists(DB_PATH):
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS user_locations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                latitude REAL,
+                longitude REAL,
+                timestamp TEXT
+            )
+        ''')
+        conn.commit()
+        conn.close()
+        print("✅ Database created.")
+    else:
+        print("ℹ️ Database already exists.")
+
+# Initialize the DB when the app starts
+init_db()
+
+# Streamlit part
+import streamlit as st
+
+st.title("🌍 Location Logger")
+
+if st.button("Add Dummy Location"):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("INSERT INTO user_locations (latitude, longitude, timestamp) VALUES (?, ?, datetime('now'))",
+              (12.9716, 77.5946))  # Example coords (Bangalore)
+    conn.commit()
+    conn.close()
+    st.success("Location saved!")
+
+# Show saved data
+conn = sqlite3.connect(DB_PATH)
+df = conn.execute("SELECT * FROM user_locations").fetchall()
+conn.close()
+
+if df:
+    st.subheader("📦 Saved Locations:")
+    for row in df:
+        st.write(row)
+
 import streamlit as st
 from PIL import Image
 import os
